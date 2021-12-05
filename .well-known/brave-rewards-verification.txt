@@ -1,0 +1,4 @@
+This is a Brave Rewards publisher verification file.
+
+Domain: dividedparty.github.io
+Token: 28194818133be98da68d1faa5ce3fe7f7253058eba5d774870df7bf082e24a1c
