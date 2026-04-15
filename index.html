@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>$DiP — Divided Party Token</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --red:    #e8432d;
+      --blue:   #2d6ae8;
+      --green:  #2db87a;
+      --yellow: #f5c842;
+      --lilac:  #b07ed4;
+      --bg:     #0d0d0d;
+      --paper:  #f4f0e8;
+      --ink:    #1a1a1a;
+      --gold:   #c9a84c;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--paper);
+      font-family: 'Space Mono', monospace;
+      overflow-x: hidden;
+      cursor: crosshair;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999; opacity: 0.4;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      position: relative;
+      padding: 2rem;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 40%, #1a1040 0%, var(--bg) 70%);
+    }
+
+    /* Spinning pie chart decoration */
+    .pie-deco {
+      position: absolute;
+      border-radius: 50%;
+      animation: slowspin 40s linear infinite;
+      opacity: 0.07;
+    }
+    .pie-deco.big   { width: 700px; height: 700px; top: -200px; right: -200px; background: conic-gradient(var(--red) 0deg 120deg, var(--blue) 120deg 240deg, var(--green) 240deg 300deg, var(--lilac) 300deg 360deg); }
+    .pie-deco.small { width: 300px; height: 300px; bottom: -80px; left: -80px;  background: conic-gradient(var(--yellow) 0deg 90deg, var(--red) 90deg 200deg, var(--blue) 200deg 360deg); animation-direction: reverse; }
+
+    @keyframes slowspin { to { transform: rotate(360deg); } }
+
+    .hero-content { position: relative; text-align: center; max-width: 860px; }
+
+    .eyebrow {
+      font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 1.5rem;
+      animation: fadein 1s ease both;
+    }
+
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(4rem, 12vw, 9rem);
+      font-weight: 900;
+      line-height: 0.9;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--paper) 0%, var(--gold) 50%, var(--paper) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      animation: fadein 1s 0.2s ease both;
+    }
+
+    .hero-sub {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: clamp(1rem, 2.5vw, 1.4rem);
+      color: #aaa;
+      margin: 1.5rem auto;
+      max-width: 600px;
+      line-height: 1.6;
+      animation: fadein 1s 0.4s ease both;
+    }
+
+    .tagline {
+      display: inline-block;
+      background: var(--red);
+      color: #fff;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.5rem 1.5rem;
+      margin: 1rem 0 2.5rem;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      animation: fadein 1s 0.6s ease both;
+    }
+
+    /* BUY BUTTON */
+    .btn-buy {
+      display: inline-block;
+      background: var(--green);
+      color: #000;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 1.1rem 3rem;
+      border: 3px solid var(--green);
+      position: relative;
+      transition: all 0.15s;
+      animation: fadein 1s 0.8s ease both, pulse 2.5s 2s ease-in-out infinite;
+    }
+    .btn-buy::after {
+      content: '';
+      position: absolute;
+      top: 6px; left: 6px; right: -6px; bottom: -6px;
+      border: 3px solid var(--green);
+      z-index: -1;
+      transition: all 0.15s;
+    }
+    .btn-buy:hover {
+      background: #000;
+      color: var(--green);
+      transform: translate(3px, 3px);
+    }
+    .btn-buy:hover::after { top: 3px; left: 3px; right: -3px; bottom: -3px; }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(45,184,122,0); }
+      50%       { box-shadow: 0 0 0 18px rgba(45,184,122,0.18); }
+    }
+
+    .btn-note {
+      display: block; font-size: 0.65rem; color: #555; margin-top: 0.8rem; letter-spacing: 0.1em;
+    }
+
+    .dip-logo {
+      width: 100px; height: 100px; margin: 0 auto 1.5rem;
+      border-radius: 50%;
+      background: conic-gradient(var(--blue) 0deg 120deg, var(--red) 120deg 210deg, var(--lilac) 210deg 270deg, var(--green) 270deg 360deg);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Playfair Display', serif; font-weight: 900; font-size: 1.8rem;
+      color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      animation: fadein 1s 0s ease both, floatbob 4s ease-in-out infinite;
+      position: relative;
+    }
+    .dip-logo::before {
+      content: '';
+      position: absolute; inset: -4px;
+      border-radius: 50%;
+      background: conic-gradient(var(--gold), transparent 40%, var(--gold) 100%);
+      z-index: -1;
+      animation: slowspin 6s linear infinite;
+    }
+
+    @keyframes floatbob {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-10px); }
+    }
+
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* SCROLL ARROW */
+    .scroll-hint {
+      position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+      opacity: 0.4; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase;
+      animation: fadein 2s 1.5s ease both;
+    }
+    .scroll-hint::after {
+      content: '↓';
+      font-size: 1.2rem;
+      animation: bounce 1.5s ease-in-out infinite;
+    }
+    @keyframes bounce { 0%,100%{transform:translateY(0)}50%{transform:translateY(5px)} }
+
+    /* ── SECTIONS ── */
+    section {
+      padding: 6rem 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 0.65rem; letter-spacing: 0.35em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: #333; }
+
+    h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 2rem;
+    }
+
+    p { line-height: 1.8; color: #bbb; margin-bottom: 1.2rem; font-size: 0.9rem; }
+
+    strong { color: var(--paper); }
+
+    /* CALLOUT BOX */
+    .callout {
+      border-left: 4px solid var(--blue);
+      background: rgba(45, 106, 232, 0.07);
+      padding: 1.5rem 1.8rem;
+      margin: 2rem 0;
+      border-radius: 0 4px 4px 0;
+    }
+    .callout.red   { border-color: var(--red);    background: rgba(232,67,45,0.07); }
+    .callout.gold  { border-color: var(--gold);   background: rgba(201,168,76,0.07); }
+    .callout.green { border-color: var(--green);  background: rgba(45,184,122,0.07); }
+
+    .callout p { margin: 0; }
+
+    .motto {
+      text-align: center;
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      color: var(--paper);
+      padding: 3rem 0;
+      border-top: 1px solid #222;
+      border-bottom: 1px solid #222;
+      margin: 3rem 0;
+    }
+    .motto span { color: var(--red); }
+
+    /* TOKEN STRUCTURE */
+    .token-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin: 2.5rem 0;
+    }
+
+    .token-card {
+      background: #111;
+      border: 1px solid #2a2a2a;
+      padding: 1.8rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .token-card:hover { border-color: var(--gold); }
+    .token-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--red), var(--blue), var(--green));
+    }
+    .token-card .num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem; font-weight: 900;
+      color: var(--gold);
+      display: block; margin-bottom: 0.3rem;
+    }
+    .token-card .label { font-size: 0.7rem; letter-spacing: 0.15em; color: #666; text-transform: uppercase; }
+
+    /* HOW IT WORKS FLOW */
+    .flow {
+      display: flex; flex-wrap: wrap; align-items: center;
+      gap: 0.5rem; margin: 2rem 0;
+    }
+    .flow-step {
+      background: #111; border: 1px solid #2a2a2a;
+      padding: 0.8rem 1.2rem; font-size: 0.78rem;
+      white-space: nowrap;
+    }
+    .flow-arrow { color: var(--gold); font-size: 1.2rem; }
+
+    /* HISTORY TIMELINE */
+    .timeline { margin: 2rem 0; }
+    .timeline-item {
+      display: flex; gap: 1.5rem; margin-bottom: 2rem;
+      padding-bottom: 2rem; border-bottom: 1px solid #1a1a1a;
+    }
+    .timeline-dot {
+      width: 14px; height: 14px; min-width: 14px;
+      border-radius: 50%; background: var(--gold);
+      margin-top: 5px;
+    }
+    .timeline-item h4 {
+      font-size: 0.9rem; color: var(--paper); margin-bottom: 0.4rem;
+    }
+    .timeline-item p { margin: 0; font-size: 0.82rem; }
+
+    /* DIVIDER */
+    .divider {
+      width: 100%; height: 1px; background: #1e1e1e;
+      margin: 0 auto;
+    }
+
+    /* VALUES */
+    .values {
+      display: flex; flex-wrap: wrap; gap: 1rem; margin: 2rem 0;
+    }
+    .value-tag {
+      border: 1px solid #333;
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #888;
+      transition: all 0.2s;
+    }
+    .value-tag:hover { border-color: var(--blue); color: var(--paper); }
+
+    /* FAQ */
+    .faq-item { margin-bottom: 2rem; }
+    .faq-q {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem; color: var(--paper);
+      margin-bottom: 0.6rem;
+    }
+
+    /* BIG BUY CTA */
+    .cta-section {
+      text-align: center;
+      padding: 8rem 2rem;
+      background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(45,184,122,0.08) 0%, transparent 70%);
+      border-top: 1px solid #1e1e1e;
+    }
+    .cta-section h2 { margin-bottom: 0.5rem; }
+    .cta-section .sub { color: #666; font-size: 0.8rem; margin-bottom: 2.5rem; }
+    .cta-section .btn-buy { font-size: 1.3rem; padding: 1.4rem 4rem; }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid #1a1a1a;
+      padding: 3rem 2rem;
+      text-align: center;
+      font-size: 0.7rem; color: #444; letter-spacing: 0.1em;
+      line-height: 2;
+    }
+    footer a { color: #666; text-decoration: none; }
+    footer a:hover { color: var(--paper); }
+
+    /* MARQUEE */
+    .marquee-wrap {
+      overflow: hidden; border-top: 1px solid #1e1e1e; border-bottom: 1px solid #1e1e1e;
+      padding: 0.8rem 0; background: #0a0a0a;
+    }
+    .marquee-track {
+      display: flex; gap: 3rem;
+      animation: marquee 25s linear infinite;
+      white-space: nowrap;
+    }
+    .marquee-track span { font-size: 0.7rem; letter-spacing: 0.2em; color: #444; text-transform: uppercase; }
+    .marquee-track .accent { color: var(--gold); }
+    @keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+    /* RESPONSIVE */
+    @media(max-width:600px) {
+      .flow { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="pie-deco big"></div>
+  <div class="pie-deco small"></div>
+
+  <div class="hero-content">
+    <div class="dip-logo">DiP</div>
+    <p class="eyebrow">$DiP &mdash; Solana SPL Token &mdash; On pump.fun</p>
+    <h1 class="hero-title">Divided<br/>Party</h1>
+    <p class="hero-sub">A meme token built on a serious surreal idea: that the world needs more conciliation, less conflict — and that finance can help get us there.</p>
+    <div class="tagline">When markets dip, buy the DiP.</div>
+    <br/>
+    <a href="#PUMP_FUN_URL_HERE" class="btn-buy" id="buyBtn">🛒 Buy $DiP on pump.fun</a>
+    <span class="btn-note">Contract address will be published here at launch. Check back soon.</span>
+  </div>
+
+  <div class="scroll-hint">scroll</div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span>$DiP</span><span class="accent">·</span>
+    <span>Divided Party</span><span class="accent">·</span>
+    <span>Self-Determination</span><span class="accent">·</span>
+    <span>Buy The Dip</span><span class="accent">·</span>
+    <span>Unity Through Division</span><span class="accent">·</span>
+    <span>Conciliation</span><span class="accent">·</span>
+    <span>Solana SPL</span><span class="accent">·</span>
+    <span>pump.fun</span><span class="accent">·</span>
+    <span>IPPAEX</span><span class="accent">·</span>
+    <span>$DiP</span><span class="accent">·</span>
+    <span>Divided Party</span><span class="accent">·</span>
+    <span>Self-Determination</span><span class="accent">·</span>
+    <span>Buy The Dip</span><span class="accent">·</span>
+    <span>Unity Through Division</span><span class="accent">·</span>
+    <span>Conciliation</span><span class="accent">·</span>
+    <span>Solana SPL</span><span class="accent">·</span>
+    <span>pump.fun</span><span class="accent">·</span>
+    <span>IPPAEX</span><span class="accent">·</span>
+  </div>
+</div>
+
+<!-- IS THIS A JOKE? -->
+<section>
+  <p class="section-label">Introduction</p>
+  <h2>Is this a joke token<br/><em style="font-family:'Playfair Display',serif;font-style:italic;">or a serious one?</em></h2>
+
+  <div class="callout">
+    <p><strong>Both — and that's the point.</strong> A "Divided Party" has never existed before. It's a new concept: <strong style="color:var(--blue)">unity through division</strong>, where enough separation exists to guarantee self-determination, yet enough common ground exists to act together. That's genuinely novel, and genuinely funny.</p>
+  </div>
+
+  <p>And then there's the crypto angle. When markets crash and everyone is sitting in a dip, buying <strong>$DiP</strong> isn't just a trade — it's a statement. While the rest of the market panics, you're buying into conciliation.</p>
+
+  <div class="motto">
+    "We are not united by what we do —<br/>
+    we are united by what we all <span>agree should not be done.</span>"
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- THE STORY -->
+<section>
+  <p class="section-label">The Story</p>
+  <h2>Where did <em style="font-family:'Playfair Display',serif;font-style:italic;">DiP</em> come from?</h2>
+
+  <p>Divided Party (DiP) was the name of a political party, registered in <strong>South Africa</strong> during 2019. The name was changed, but the DiP brand lives on — carrying forward its original mission of <strong>conciliation, mediation and dispute resolution</strong>.</p>
+
+  <p>DiP promotes international self-determination <strong style="color:var(--red)">as opposed to imperialism</strong>, because if self-determination is not promoted for all, imperialism is implied.</p>
+
+  <div class="callout red">
+    <p>The world has plenty of tokens that agree on everything. $DiP is the only one built around the radical idea that <strong>agreeing on what not to do</strong> might actually be enough.</p>
+  </div>
+
+  <div class="values">
+    <span class="value-tag">Conciliation</span>
+    <span class="value-tag">Mediation</span>
+    <span class="value-tag">Self-determination</span>
+    <span class="value-tag">Dispute resolution</span>
+    <span class="value-tag">Anti-imperialism</span>
+    <span class="value-tag">Mutual respect</span>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- THE BIG IDEA -->
+<section>
+  <p class="section-label">The Big Idea</p>
+  <h2>The most divided<br/>party you'll ever join.</h2>
+
+  <p>Most political movements ask: <em>"What do we stand for?"</em> DiP asks a different question: <em>"What do we all agree should never happen?"</em> Turns out the Venn diagram of human dignity is a very large circle.</p>
+
+  <div class="callout gold">
+    <p><strong>$DiP</strong> stands for <strong>self-determination, mutual respect, and the rejection of imperialism in all its forms.</strong> Whether you're left, right, or completely off the chart — you're welcome here, as long as you agree that imposing your will on others is bad, actually.</p>
+  </div>
+
+  <p>It is, simultaneously, the most inclusive political idea and the most divided party. Welcome to the DiP.</p>
+</section>
+
+<div class="divider"></div>
+
+<!-- TOKEN STRUCTURE -->
+<section>
+  <p class="section-label">Token Structure</p>
+  <h2>The numbers,<br/>laid bare and honest.</h2>
+
+  <div class="token-grid">
+    <div class="token-card">
+      <span class="num">4.8Q</span>
+      <span class="label">Total max supply (ipparts)</span>
+    </div>
+    <div class="token-card">
+      <span class="num">1B</span>
+      <span class="label">Current issue (tokens × 6 decimals)</span>
+    </div>
+    <div class="token-card">
+      <span class="num">1Q</span>
+      <span class="label">Issued ipparts of 4.8Q max</span>
+    </div>
+    <div class="token-card">
+      <span class="num">48%</span>
+      <span class="label">Brand value monetised via DiP tokens</span>
+    </div>
+  </div>
+
+  <p>The smallest unit of $DiP is called an <strong>ippart</strong>. Ipparts: arguably the only unit of financial measurement that also sounds like something a bird would do.</p>
+
+  <div class="callout green">
+    <p><strong>48% of 100% of Divided Party brand value</strong> is monetised through DiP tokens. The other 52% remains stubbornly unmonetised, as a philosophical act.</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- HOW IT WORKS -->
+<section>
+  <p class="section-label">How This Launch Works</p>
+  <h2>Transparently simple.<br/>Simply transparent.</h2>
+
+  <div class="callout gold">
+    <p>Purchase proceeds from this pump.fun launch go into a <strong>locked liquidity pool</strong> — not directly to the project. This launch is about exposure and creator rewards, which fund IPPAEX development.</p>
+  </div>
+
+  <div class="flow">
+    <div class="flow-step">Buy on pump.fun</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Locked Solana LP</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Creator rewards</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">IPPAEX development</div>
+  </div>
+
+  <p>No complex vesting schedules. No seventeen-layer tokenomics documents written in a font only lawyers can read. Just a clean, auditable flow from your wallet to a locked pool that funds real development.</p>
+</section>
+
+<div class="divider"></div>
+
+<!-- HISTORY -->
+<section>
+  <p class="section-label">History</p>
+  <h2>It didn't start here.<br/>Nothing good does.</h2>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div>
+        <h4>Original Ethereum Issue</h4>
+        <p>DiP was first issued on Ethereum. Infrastructure constraints meant tokens were not sold — a moment of principled restraint that was, admittedly, also just bad timing.</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot" style="background:var(--blue)"></div>
+      <div>
+        <h4>Migration to Solana</h4>
+        <p>Relaunched as an SPL token on Solana via pump.fun for better accessibility and lower costs. The chain changed. The mission didn't.</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot" style="background:var(--green)"></div>
+      <div>
+        <h4>Listed on IPPAEX</h4>
+        <p>DiP is listed on Ipparts Exchange — the home of brand tokens and the ipparts standard. A fitting home for a token representing an idea.</p>
+      </div>
+    </div>
+    <div class="timeline-item" style="border-bottom:none;margin-bottom:0;padding-bottom:0">
+      <div class="timeline-dot" style="background:var(--lilac)"></div>
+      <div>
+        <h4>Future Issues</h4>
+        <p>Subsequent token issuances will give preference to existing holders — similar to a rights offer in equity markets. If you're early, you stay early.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ROADMAP -->
+<section>
+  <p class="section-label">Roadmap</p>
+  <h2>The future is built,<br/>not promised.</h2>
+
+  <div class="callout">
+    <p>$DiP will be developed <strong>in conjunction with the Ipparts Exchange (IPPAEX) project</strong> — as the exchange grows, so does the ecosystem around DiP. The two are intertwined: a stronger IPPAEX means a more capable, more visible DiP token, and vice versa.</p>
+  </div>
+
+  <p>There are no promises here about lambos, moons, or geometric price targets expressed as astronomical units. The roadmap is simple: <strong>build something real, and let the token reflect that reality.</strong></p>
+
+  <p>No predictions. The future is built, not promised.</p>
+</section>
+
+<div class="divider"></div>
+
+<!-- FAQ -->
+<section>
+  <p class="section-label">FAQ</p>
+  <h2>Questions you probably have,<br/>answered honestly.</h2>
+
+  <div class="faq-item">
+    <p class="faq-q">Q: Is this a rug pull?</p>
+    <p>Proceeds go into a <strong>locked liquidity pool</strong>. The rugs, metaphorically speaking, are nailed to the floor.</p>
+  </div>
+
+  <div class="faq-item">
+    <p class="faq-q">Q: What makes DiP different from every other meme token?</p>
+    <p>Most meme tokens are about a dog, a frog, or a dog that is also a frog. $DiP is about the radical idea that self-determination is a universal right. It is, to our knowledge, the only token that is simultaneously a meme, a political philosophy, and a buy-the-dip pun.</p>
+  </div>
+
+  <div class="faq-item">
+    <p class="faq-q">Q: Why "Divided Party"?</p>
+    <p>Because a party where everyone agrees is called a dictatorship. A party where nobody agrees is called the internet. A Divided Party is something new: structured disagreement with mutual respect. We think that's better.</p>
+  </div>
+
+  <div class="faq-item">
+    <p class="faq-q">Q: What is an ippart?</p>
+    <p>The smallest unit of $DiP. Like a satoshi, but for a token that believes in your right to self-determination. Also it sounds like a bird noise, which we consider a feature.</p>
+  </div>
+
+  <div class="faq-item">
+    <p class="faq-q">Q: Seriously though — is this a joke?</p>
+    <p>The humour is real. The mission is real. The token is real. The locked liquidity is real. Some of the best ideas in history started as jokes. The rest started as manifestos. $DiP is both.</p>
+  </div>
+</section>
+
+<!-- BIG CTA -->
+<div class="cta-section">
+  <p class="section-label" style="justify-content:center;max-width:fit-content;margin:0 auto 1rem">Ready to buy the dip?</p>
+  <h2>Markets dip.<br/>You buy the DiP.</h2>
+  <p class="sub">Join the only token backed by a genuine philosophy of conciliation, self-determination,<br/>and the belief that not agreeing on everything is actually fine.</p>
+  <a href="#PUMP_FUN_URL_HERE" class="btn-buy">🛒 Buy $DiP on pump.fun</a>
+  <br/><span class="btn-note">Link becomes active at launch. Contract address will be added here.</span>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p><strong>dividedparty.github.io</strong></p>
+  <p>$DiP — Solana SPL Token — Launched on pump.fun</p>
+  <p style="margin-top:0.5rem">On behalf of <strong>Africahead, IPPAEX &amp; Divided Party (DiP)</strong></p>
+  <p>Marquard Dirk Pienaar</p>
+  <br/>
+  <p style="color:#333">$DiP is a meme token. It is also a serious project. This is not financial advice. It is, however, very good advice to stop letting the world be governed by people who don't believe in your right to exist. Buy the DiP.</p>
+</footer>
+
+<script>
+  // Update buy button URLs when pump.fun link is available
+  // Replace '#PUMP_FUN_URL_HERE' with the actual URL
+  // e.g. document.querySelectorAll('a.btn-buy').forEach(b => b.href = 'https://pump.fun/...')
+
+  // Subtle parallax on hero pie decorations
+  window.addEventListener('mousemove', e => {
+    const x = (e.clientX / window.innerWidth - 0.5) * 20;
+    const y = (e.clientY / window.innerHeight - 0.5) * 20;
+    document.querySelector('.pie-deco.big').style.transform  = `translate(${x*0.5}px,${y*0.5}px) rotate(0deg)`;
+    document.querySelector('.pie-deco.small').style.transform = `translate(${-x*0.3}px,${-y*0.3}px) rotate(0deg)`;
+  });
+</script>
+
+</body>
+</html>
